@@ -52,3 +52,45 @@ int stack_init(Stack **const stack) {
 
     return EXIT_SUCCESS;
 }
+
+int stack_free(Stack **const stack) {
+    if (!*stack) {
+        return EXIT_FAILURE;
+    }
+
+    stack_make_empty(*stack);
+    free(*stack);
+    *stack = NULL;
+
+    return EXIT_SUCCESS;
+}
+
+int stack_length(Stack *const stack, int *const length) {
+    if (!stack) {
+        return EXIT_FAILURE;
+    }
+    *length = stack -> length;
+
+    return EXIT_SUCCESS;
+}
+
+int stack_is_empty(const Stack *const stack, bool *const is_empty) {
+    if (!stack) {
+        return EXIT_FAILURE;
+    }
+    *is_empty = stack -> length == 0 ? true : false;
+
+    return EXIT_SUCCESS;
+}
+
+int stack_make_empty(Stack *const stack) {
+    if (!stack) {
+        return EXIT_FAILURE;
+    }
+
+    while ((*stack) -> length > 0) {
+        stack_pop(*stack, NULL);
+    }
+
+    return EXIT_SUCCESS;
+}

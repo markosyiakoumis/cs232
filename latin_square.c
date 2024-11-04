@@ -1,0 +1,177 @@
+#include "latin_square.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+#ifdef DEBUG_LATIN_SQUARE
+int main(void) {
+    printf("Initializing a 3x3 latin square...\n");
+    LatinSquare *latin_square = NULL;
+    latin_square_init(&latin_square, 3);
+    latin_square_print(latin_square);
+
+    printf("Executing 1,2 = -2...\n");
+    latin_square_insert(latin_square, 0, 1, -2);
+    latin_square_print(latin_square);
+
+    printf("Executing 2,1 = -2...\n");
+    latin_square_insert(latin_square, 1, 0, -2);
+    latin_square_print(latin_square);
+
+    printf("Executing 2,1 = -2...\n");
+    latin_square_insert(latin_square, 1, 0, -2);
+    latin_square_print(latin_square);
+
+    return EXIT_SUCCESS;
+}
+#endif
+
+static
+bool check_bounds(LatinSquare *latin_square, int const row, int const column, int const value) {
+    if (row > latin_square -> size - 1 || column > latin_square -> size - 1 || value > latin_square -> size) {
+        printf("Error: i,j or val are outside the allowed range [1..%d]\n", latin_square -> size);
+        return false;
+    }
+
+    return true;
+}
+
+static
+bool check_occupation(LatinSquare *latin_square, int const row, int const column) {
+    if (latin_square -> square[row][column] != 0) {
+        printf("Error: cell is already occupied!\n");
+        return false;
+    }
+
+    return true;
+}
+
+static
+bool check_valid_insert(LatinSquare *latin_square, int const row, int const column, int const value) {
+    for (int index = 0; index < latin_square -> size; index++) {
+        if (latin_square -> square[index][column] == value || latin_square -> square[row][index] == value) {
+            printf("Error: illegal value insertion!\n");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static
+bool check_valid_clear(LatinSquare *latin_square, int const row, int const column) {
+    if (latin_square -> square[row][column] < 0) {
+        printf("Error: illegal to clear cell!\n");
+        return false;
+    }
+
+    return true;
+}
+
+static
+void print_horizontal_border(int size) {
+    for (int index = 0; index < size; index++) {
+        printf("+-----");
+    }
+    printf("+\n");
+}
+
+int latin_square_init(LatinSquare **const latin_square, int const size) {
+    if (*latin_square) {
+        return EXIT_FAILURE;
+    }
+
+    *latin_square = (LatinSquare *)malloc(1 * sizeof(LatinSquare));
+    if (!*latin_square) {
+        return EXIT_FAILURE;
+    }
+    (*latin_square) -> size = size;
+
+    (*latin_square) -> square = (int **)malloc(size * sizeof(int *));
+    if (!(*latin_square) -> square) {
+        return EXIT_FAILURE;
+    }
+
+    for (int row_index = 0; row_index < size; row_index++) {
+        (*latin_square) -> square[row_index] = (int *)malloc(size * sizeof(int));
+        if (!(*latin_square) -> square[row_index]) {
+            return EXIT_FAILURE;
+        }
+        for (int column_index = 0; column_index < size; column_index++) {
+            (*latin_square) -> square[row_index][column_index] = 0;
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int latin_square_free(LatinSquare **const latin_square) {
+    if (*latin_square) {
+
+    }
+    for (int row_index = 0; row_index < (*latin_square) -> size; row_index++) {
+        free((*latin_square) -> square[row_index]);
+        (*latin_square) -> square[row_index] = NULL;
+    }
+    free((*latin_square) -> square);
+    (*latin_square) -> square = NULL;
+
+    free(*latin_square);
+    *latin_square = NULL;
+    
+    return EXIT_SUCCESS;
+}
+
+int latin_square_insert(LatinSquare *latin_square, int const row, int const column, int const value) {
+    if (!latin_square) {
+        return EXIT_FAILURE;
+    }
+
+    if (!check_bounds(latin_square, row, column, value)) {
+        return EXIT_FAILURE;
+    } else if (!check_occupation(latin_square, row, column)) {
+        return EXIT_FAILURE;
+    } else if (!check_valid_insert(latin_square, row, column, value)) {
+        return EXIT_FAILURE;
+    }
+    latin_square -> square[row][column] = value;
+
+    return EXIT_SUCCESS;
+}
+
+int latin_square_clear(LatinSquare *latin_square, int const row, int const column) {
+    if (!latin_square) {
+        return EXIT_FAILURE;
+    }
+
+    if (!check_bounds(latin_square, row, column, 0)) {
+        return EXIT_FAILURE;
+    } else if (!check_valid_clear(latin_square, row, column)) {
+        return EXIT_FAILURE;
+    }
+    latin_square -> square[row][column] = 0;
+
+    return EXIT_SUCCESS;
+}
+
+int latin_square_print(LatinSquare *const latin_square) {
+    if (!latin_square) {
+        return EXIT_FAILURE;
+    }
+
+    for (int row_index = 0; row_index < latin_square -> size; row_index++) {
+        print_horizontal_border(latin_square -> size);
+        for (int column_index = 0; column_index < latin_square -> size; column_index++) {
+            if (latin_square -> square[row_index][column_index] >= 0) {
+                printf("|  %d  ", latin_square -> square[row_index][column_index]);
+            } else {
+                printf("| (%d) ", latin_square -> square[row_index][column_index] * -1);
+            }
+        }
+        printf("|\n");
+    }
+    print_horizontal_border(latin_square -> size);
+
+    return EXIT_SUCCESS;
+}

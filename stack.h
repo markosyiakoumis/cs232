@@ -14,7 +14,7 @@ int stack_init(Stack **const stack);
 
 int stack_free(Stack **const stack);
 
-int stack_length(Stack *const stack);
+int stack_length(Stack *const stack, int *const length);
 
 int stack_is_empty(const Stack *const stack, bool *const is_empty);
 
