@@ -29,7 +29,7 @@ int main(void) {
 
 static
 bool check_bounds(LatinSquare *latin_square, int const row, int const column, int const value) {
-    if (row > latin_square -> size - 1 || column > latin_square -> size - 1 || value > latin_square -> size) {
+    if (row > latin_square -> size - 1 || column > latin_square -> size - 1 || abs(value) > latin_square -> size) {
         printf("Error: i,j or val are outside the allowed range [1..%d]\n", latin_square -> size);
         return false;
     }
@@ -71,7 +71,7 @@ bool check_valid_clear(LatinSquare *latin_square, int const row, int const colum
 
 static
 void print_horizontal_border(int size) {
-    for (int index = 0; index < size; index++) {
+    for (int counter = 1; counter <= size; counter++) {
         printf("+-----");
     }
     printf("+\n");
@@ -163,10 +163,30 @@ int latin_square_print(LatinSquare *const latin_square) {
     for (int row_index = 0; row_index < latin_square -> size; row_index++) {
         print_horizontal_border(latin_square -> size);
         for (int column_index = 0; column_index < latin_square -> size; column_index++) {
+            int temporary = abs(latin_square -> square[row_index][column_index]);
+            int digits = temporary == 0 ? 1 : 0;
+            while (temporary != 0) {
+                digits++;
+                temporary /= 10;
+            }
+
+            printf("|");
             if (latin_square -> square[row_index][column_index] >= 0) {
-                printf("|  %d  ", latin_square -> square[row_index][column_index]);
+                for (int space_counter = 0; space_counter < 3 - digits; space_counter++) {
+                    printf(" ");
+                }
+                printf("%d", latin_square -> square[row_index][column_index]);
+                for (int space_counter = 0; space_counter < 2; space_counter++) {
+                    printf(" ");
+                }
             } else {
-                printf("| (%d) ", latin_square -> square[row_index][column_index] * -1);
+                for (int space_counter = 0; space_counter < 3 - digits - 1; space_counter++) {
+                    printf(" ");
+                }
+                printf("(%d)", latin_square -> square[row_index][column_index] * -1);
+                for (int space_counter = 0; space_counter < 2 - 1; space_counter++) {
+                    printf(" ");
+                }
             }
         }
         printf("|\n");
