@@ -41,7 +41,7 @@ int main(void) {
 
     printf("Solving the latin square...\n");
     latin_square_solve(latin_square);
-
+    latin_square_free(&latin_square);
     return EXIT_SUCCESS;
 }
 #endif
