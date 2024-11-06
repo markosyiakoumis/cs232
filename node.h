@@ -11,7 +11,7 @@ typedef struct node {
     struct node *next;
 } Node;
 
-int node_init(Node **node, LatinSquare **latin_square, const int row, const int column, const int value, Node *next);
+int node_init(Node **node, LatinSquare *latin_square, const int row, const int column, const int value, Node *next);
 
 int node_free(Node **node);
 

@@ -17,7 +17,7 @@ int main(void) {
 }
 #endif
 
-int node_init(Node **node, LatinSquare **latin_square, const int row, const int column, const int row, Node *next) {
+int node_init(Node **node, LatinSquare *latin_square, const int row, const int column, const int value, Node *next) {
     if (*node) {
         return EXIT_FAILURE;
     }

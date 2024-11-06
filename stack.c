@@ -3,44 +3,34 @@
 #include <stdlib.h>
 
 #ifdef DEBUG_STACK
+#include <stdio.h>
+#include <assert.h>
+
 int main(void) {
     printf("Initializing a stack...\n");
     Stack *stack = NULL;
     stack_init(&stack);
 
-    printf("Pushing 5 to the stack...\n");
-    stack_push(stack, 5);
+    printf("Initializing a 3x3 latin square...\n");
+    LatinSquare *latin_square = NULL;
+    latin_square_init(&latin_square, 3);
+    latin_square_print(latin_square);
+
+    printf("Executing 1,2 = -2...\n");
+    latin_square_insert(latin_square, 0, 1, -2);
+    latin_square_print(latin_square);
+
+    printf("Pushing the latin square to the stack...\n");
+    stack_push(stack, latin_square, 0, 0, 0);
     stack_print(stack);
 
-    printf("Pushing 9 to the stack...\n");
-    stack_push(stack, 9);
-    stack_print(stack);
-
-    printf("Pushing 189 to the stack...\n");
-    stack_push(stack, 189);
-    stack_print(stack);
-
-    printf("Popping from the stack until it's empty...\n");
-    bool is_empty;
-    do {
-        printf("Before:\n");
-        stack_print(stack);
-        stack_pop(stack, NULL);
-        printf("After:\n");
-        stack_print(stack);
-        stack_is_empty(stack, &is_empty);
-    } while(!is_empty);
-
-    printf("Checking if stack is empty...\n");
-    is_empty ? printf("true\n") : printf("false\n");
     stack_free(&stack);
-
     return EXIT_SUCCESS;
 }
 #endif
 
 int stack_init(Stack **const stack) {
-    if (!*stack) {
+    if (*stack) {
         return EXIT_FAILURE;
     }
 
@@ -48,7 +38,7 @@ int stack_init(Stack **const stack) {
     if (!*stack) {
         return EXIT_FAILURE;
     }
-    (*stack) -> length = 0;
+    (*stack) -> size = 0;
 
     return EXIT_SUCCESS;
 }
@@ -69,7 +59,7 @@ int stack_is_empty(const Stack *const stack, bool *const is_empty) {
     if (!stack) {
         return EXIT_FAILURE;
     }
-    *is_empty = stack -> length == 0 ? true : false;
+    *is_empty = stack -> size == 0 ? true : false;
 
     return EXIT_SUCCESS;
 }
@@ -79,22 +69,42 @@ int stack_make_empty(Stack *const stack) {
         return EXIT_FAILURE;
     }
 
-    while ((*stack) -> length > 0) {
-        stack_pop(*stack, NULL);
+    while (stack -> size > 0) {
+        stack_pop(stack, NULL, NULL, NULL, NULL);
     }
 
     return EXIT_SUCCESS;
 }
 
-int stack_push(Stack *const stack, LatinSquare *latin_square, const int row, const int column, const int row) {
+int stack_top(Stack *const stack, LatinSquare **latin_square, int *const row, int *const column, int *const value) {
+    if (!stack) {
+        return EXIT_FAILURE;
+    } else if (stack -> size == 0) {
+        return EXIT_FAILURE;
+    }
+
+    if (latin_square) {
+        *latin_square = stack -> top -> latin_square;
+    }
+    if (row) {
+        *row = stack -> top -> row;
+    }
+    if (column) {
+        *column = stack -> top -> column;
+    }
+    if (value) {
+        *value = stack -> top -> value;
+    }
+    return EXIT_SUCCESS;
+}
+
+int stack_push(Stack *const stack, LatinSquare *latin_square, const int row, const int column, const int value) {
     if (!stack) {
         return EXIT_FAILURE;
     }
 
     Node *node = NULL;
-    if (node_init(&node, latin_square, row, column, value, NULL) == EXIT_FAILURE) {
-        return EXIT_FAILURE;
-    }
+    node_init(&node, latin_square, row, column, value, NULL);    
 
     if (stack -> size > 0) {
         node -> next = stack -> top;
@@ -106,27 +116,25 @@ int stack_push(Stack *const stack, LatinSquare *latin_square, const int row, con
 }
 
 int stack_pop(Stack *const stack, LatinSquare **latin_square, int *const row, int *const column, int *const value) {
-    if (!stack) {
-        return EXIT_FAILURE;
-    } else if (stack -> size == 0) {
-        return EXIT_FAILURE;
-    }
+    stack_top(stack, latin_square, row, column, value);
 
     Node *old_top = stack -> top;
     stack -> top = stack -> top -> next;
-
-    node_free(&node);
+    
+    node_free(&old_top);
     (stack -> size)--;
+    
+    return EXIT_SUCCESS;
 }
 
 int stack_print(Stack *const stack) {
-    if (!stack_print) {
+    if (!stack) {
         return EXIT_FAILURE;
     }
 
     Node *node = stack -> top;
     while (node) {
-        print_node(node);
+        node_print(node);
         node = node -> next;
     }
 
