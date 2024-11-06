@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
+#include <stdbool.h>
 
 #ifdef DEBUG_FILE_HANDLER
 int main(int argc, char *argv[]) {
@@ -30,74 +31,77 @@ int read_latin_square(char *const file_name, LatinSquare **latin_square) {
 
     char buffer[1024];
     fgets(buffer, sizeof(buffer), file_pointer);
+
     int size = 0;
     for (int index = 0; index < strlen(buffer) - 1; index++) {
         if (isdigit(buffer[index])) {
             size = size * 10 + buffer[index] - '0';
         } else {
-            perror("Invalid malakia sto proto line");
+            perror("Invalid size found in file!");
             fclose(file_pointer);
             return EXIT_FAILURE;
         }
     }
 
-    int row_index = 0,
-        numbers_counter = 0;
     latin_square_init(latin_square, size);
-    while (fgets(buffer, sizeof(buffer), file_pointer)) {
-        int value = 0,
-            column_index = 0,
-            buffer_index = 0;
-        
-        while (buffer_index < strlen(buffer) - 1) {
-            if (buffer[buffer_index] == '-') {
-                if (buffer_index >= strlen(buffer) - 1) {
-                    //SASTAAA
+    for (int row_index = 0; row_index < size; row_index) {
+        latin_square_print(*latin_square);
+        printf("Column: %d\n", column_index);
+        int column_index = 0;
+        while (fgets(buffer, sizeof(buffer), file_pointer)) {
+            int value = 0;
+            printf("Column: %d\n", column_index);
+            int buffer_index = 0;
+            while (buffer_index < strlen(buffer)) {
+                if (buffer[buffer_index] == '-') {
+                    if (buffer_index >= strlen(buffer) - 1 || !isdigit(buffer[buffer_index + 1])) {
+                        return EXIT_FAILURE;
+                    }
+
+                    buffer_index++;
+                } else if (isdigit(buffer[buffer_index])) {
+                    value = value * 10 + buffer[buffer_index] - '0';
+                    value = buffer_index > 0 && buffer[buffer_index - 1] == '-' ? value * -1 : value;
+
+                    buffer_index++;
+                } else if (buffer[buffer_index] == ' ' || (buffer_index == strlen(buffer) - 1 && buffer[buffer_index] == '\n')) {
+                    printf("%d\n", value);
+                    if (value != 0) {
+                        if (latin_square_insert(*latin_square, row_index, column_index, value) == EXIT_FAILURE) {
+                            perror("File contains invalid values!");
+                            fclose(file_pointer);
+                            latin_square_free(latin_square);
+                        }
+                    }
+
+                    value = 0;
+                    column_index++;
+                    buffer_index++;
+                } else {
+                    printf("MEOW%d\n", (int)buffer[buffer_index]);
+                    perror("Invalid file syntax!");
+                    fclose(file_pointer);
+                    latin_square_free(latin_square);
                     return EXIT_FAILURE;
                 }
-                buffer_index++;
             }
-            if (isdigit(buffer[buffer_index])) {
-                if (buffer[buffer_index] == '0' && (buffer_index < strlen(buffer) - 1 || !isdigit(buffer[buffer_index + 1]))) {
-                    buffer_index++;
-                    continue;
-                }
-                value = value * 10 + buffer[buffer_index] - '0';
-                if (buffer_index > 0 && buffer[buffer_index - 1] == '-') {
-                    value *= -1;
-                }
-                buffer_index++;
-            } else if (buffer[buffer_index] == ' ') {
-                if (value != 0) {
-                    latin_square_insert(*latin_square, row_index, column_index, value);
-                }
 
-                value = 0;
-                column_index++;
-                numbers_counter++;
-                buffer_index++;
-            } else {
-                printf("CHAR %d", (int)buffer[buffer_index]);
-                perror("Invalid malakia sto file");
+            if (column_index != size) {
+                perror("too few columns found in row");
                 fclose(file_pointer);
                 latin_square_free(latin_square);
                 return EXIT_FAILURE;
             }
         }
-        if (value != 0) {
-            latin_square_insert(*latin_square, row_index, column_index, value);
-        }
-        
-        row_index++;
-        if (row_index > size) {
-            perror("POLLA PRAMATA sto file");
-            fclose(file_pointer);
-            latin_square_free(latin_square);
-            return EXIT_FAILURE;
-        }
+    }
+
+    if (fgets(buffer, sizeof(buffer), file_pointer)) {
+        perror("File contains more data than expected!");
+        fclose(file_pointer);
+        latin_square_free(latin_square);
+        return EXIT_FAILURE;
     }
 
     fclose(file_pointer);
-
     return EXIT_SUCCESS;
 }
