@@ -65,15 +65,6 @@ int stack_free(Stack **const stack) {
     return EXIT_SUCCESS;
 }
 
-int stack_length(Stack *const stack, int *const length) {
-    if (!stack) {
-        return EXIT_FAILURE;
-    }
-    *length = stack -> length;
-
-    return EXIT_SUCCESS;
-}
-
 int stack_is_empty(const Stack *const stack, bool *const is_empty) {
     if (!stack) {
         return EXIT_FAILURE;
@@ -90,6 +81,53 @@ int stack_make_empty(Stack *const stack) {
 
     while ((*stack) -> length > 0) {
         stack_pop(*stack, NULL);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int stack_push(Stack *const stack, LatinSquare *latin_square, const int row, const int column, const int row) {
+    if (!stack) {
+        return EXIT_FAILURE;
+    }
+
+    Node *node = NULL;
+    if (node_init(&node, latin_square, row, column, value, NULL) == EXIT_FAILURE) {
+        return EXIT_FAILURE;
+    }
+
+    if (stack -> size > 0) {
+        node -> next = stack -> top;
+    }
+    stack -> top = node;
+    (stack -> size)++;
+
+    return EXIT_SUCCESS;
+}
+
+int stack_pop(Stack *const stack, LatinSquare **latin_square, int *const row, int *const column, int *const value) {
+    if (!stack) {
+        return EXIT_FAILURE;
+    } else if (stack -> size == 0) {
+        return EXIT_FAILURE;
+    }
+
+    Node *old_top = stack -> top;
+    stack -> top = stack -> top -> next;
+
+    node_free(&node);
+    (stack -> size)--;
+}
+
+int stack_print(Stack *const stack) {
+    if (!stack_print) {
+        return EXIT_FAILURE;
+    }
+
+    Node *node = stack -> top;
+    while (node) {
+        print_node(node);
+        node = node -> next;
     }
 
     return EXIT_SUCCESS;

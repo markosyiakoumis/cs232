@@ -23,6 +23,22 @@ int main(void) {
     latin_square_insert(latin_square, 1, 0, -2);
     latin_square_print(latin_square);
 
+    printf("Testing latin_square_copy\n");
+    LatinSquare *copied_square=NULL;
+    if(latin_square_copy(&copied_square,latin_square)==EXIT_SUCCESS)
+    {
+        printf("Copy successfull,printing the copied square:\n");
+        latin_square_print(copied_square);
+        latin_square_insert(copied_square,2,2,1);
+        latin_square_print(copied_square);
+        latin_square_print(latin_square);
+        
+    }
+    else
+    {
+        printf("Copy failed.\n");
+        
+    }
     return EXIT_SUCCESS;
 }
 #endif
@@ -107,9 +123,10 @@ int latin_square_init(LatinSquare **const latin_square, int const size) {
 }
 
 int latin_square_free(LatinSquare **const latin_square) {
-    if (*latin_square) {
-
+    if (!*latin_square) {
+        return EXIT_FAILURE; 
     }
+
     for (int row_index = 0; row_index < (*latin_square) -> size; row_index++) {
         free((*latin_square) -> square[row_index]);
         (*latin_square) -> square[row_index] = NULL;
@@ -122,7 +139,44 @@ int latin_square_free(LatinSquare **const latin_square) {
     
     return EXIT_SUCCESS;
 }
+int latin_square_copy(LatinSquare **dest,const LatinSquare *src)
+{
+    if(!src||*dest)
+    return EXIT_FAILURE;
+    *dest = (LatinSquare *)malloc(sizeof(LatinSquare));
+    if(!*dest)
+    return EXIT_FAILURE;
 
+    (*dest)->size=src->size;
+    (*dest)->square=(int ** )malloc(src->size *sizeof(int *));
+    if(!(*dest)->square)
+    {
+        free(*dest);
+        *dest=NULL;
+        return EXIT_FAILURE;
+    }
+
+    for(int i=0; i< src->size;i++)
+    {
+        (*dest)->square[i]=(int *)malloc(src->size *sizeof(int));
+        if(!(*dest)->square[i])
+        {
+            for(int j=0;j<i;j++)
+            {
+                free((*dest)->square[j]);
+            }
+            free((*dest)->square);
+            free(*dest);
+            *dest=NULL;
+            return EXIT_FAILURE;
+        }
+        for(int j=0;j<src->size;j++)
+        {
+            (*dest)->square[i][j]=src->square[i][j];
+        }
+    }
+    return EXIT_SUCCESS;
+}
 int latin_square_insert(LatinSquare *latin_square, int const row, int const column, int const value) {
     if (!latin_square) {
         return EXIT_FAILURE;
@@ -140,17 +194,85 @@ int latin_square_insert(LatinSquare *latin_square, int const row, int const colu
     return EXIT_SUCCESS;
 }
 
+
 int latin_square_clear(LatinSquare *latin_square, int const row, int const column) {
     if (!latin_square) {
         return EXIT_FAILURE;
     }
-
+int pushes_counter=0,pop_counter=0;
     if (!check_bounds(latin_square, row, column, 0)) {
         return EXIT_FAILURE;
     } else if (!check_valid_clear(latin_square, row, column)) {
         return EXIT_FAILURE;
     }
     latin_square -> square[row][column] = 0;
+
+    return EXIT_SUCCESS;
+}
+
+int latin_square_solve(LatinSquare *latin_square) {
+    Stack *stack = NULL;
+    stack_init(&stack);
+    stack_push(latin_square, 0, 0, 0);
+    //dest,src
+
+    int push_counter = 0;
+    int pop_counter = 0;
+    bool is_empty = false;
+    while (!is_empty) {
+        LatinSquare *top_latin_square;
+        int top_row;
+        int top_column;
+        int top_value;
+        stack_top(stack, top_latin_square, &top_row, &top_column, &top_value);
+
+        LatinSquare *current_latin_square = NULL;
+        latin_square_copy(top_latin_square, &current_latin_square);
+        for (int row_index = top_row; row_index < current_latin_square -> size; row_index++) {
+            bool found_empty_cell = false;
+
+            int column_index = (row_index == top_row) ? top_column : 0;
+            for (; column_index < current_latin_square -> size; column_index++) {
+                if (current_latin_square -> square[row_index][column_index] == 0) {
+                    int value = (row_index == top_row && column_index == top_column) ? top_value + 1 : 1;
+                    while (value <= current_latin_square -> size && latin_square_insert(current_latin_square, row_index, column_index, value) == EXIT_FAILURE) {
+                        value++;
+                    }
+                    
+                    if (top > size) {
+                        int popped_row;
+                        int popped_column;
+                        int popped_value;
+                        stack_pop(stack, NULL, &popped_row, &popped_column, &popped_value);
+                        stack_is_empty(stack, &is_empty);
+                        if (stack_is_empty) {
+                            // idk wtf to do here.
+                        } else {
+                            stack -> top.row = popped_row;
+                            stack -> top.column = popped_column;
+                            stack -> top.value = popped_value;
+
+                            pop_counter++;
+                            printf("POP: STEP %d\n", push_counter + pop_counter);
+                            latin_square_print(top_latin_square);
+                        }
+                    } else {
+                        push_counter++;
+                        printf("PUSH: STEP %d\n", push_counter + pop_counter);
+                        stack_push(stack, current_latin_square, row_index, column_index, value);
+                        latin_square_print(current_latin_square);
+                    }
+                    
+                    found_empty_cell = true;
+                    break;
+                }
+            }
+
+            if (found_empty_cell) {
+                break;
+            }
+        }
+    }
 
     return EXIT_SUCCESS;
 }

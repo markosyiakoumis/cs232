@@ -44,54 +44,51 @@ int read_latin_square(char *const file_name, LatinSquare **latin_square) {
     }
 
     latin_square_init(latin_square, size);
-    for (int row_index = 0; row_index < size; row_index) {
-        latin_square_print(*latin_square);
-        printf("Column: %d\n", column_index);
-        int column_index = 0;
-        while (fgets(buffer, sizeof(buffer), file_pointer)) {
-            int value = 0;
-            printf("Column: %d\n", column_index);
-            int buffer_index = 0;
-            while (buffer_index < strlen(buffer)) {
-                if (buffer[buffer_index] == '-') {
-                    if (buffer_index >= strlen(buffer) - 1 || !isdigit(buffer[buffer_index + 1])) {
-                        return EXIT_FAILURE;
-                    }
+    for (int row_index = 0; row_index < size; row_index++) {
+        if (!fgets(buffer, sizeof(buffer), file_pointer)) {
+            return EXIT_FAILURE;
+        }
 
-                    buffer_index++;
-                } else if (isdigit(buffer[buffer_index])) {
-                    value = value * 10 + buffer[buffer_index] - '0';
-                    value = buffer_index > 0 && buffer[buffer_index - 1] == '-' ? value * -1 : value;
-
-                    buffer_index++;
-                } else if (buffer[buffer_index] == ' ' || (buffer_index == strlen(buffer) - 1 && buffer[buffer_index] == '\n')) {
-                    printf("%d\n", value);
-                    if (value != 0) {
-                        if (latin_square_insert(*latin_square, row_index, column_index, value) == EXIT_FAILURE) {
-                            perror("File contains invalid values!");
-                            fclose(file_pointer);
-                            latin_square_free(latin_square);
-                        }
-                    }
-
-                    value = 0;
-                    column_index++;
-                    buffer_index++;
-                } else {
-                    printf("MEOW%d\n", (int)buffer[buffer_index]);
-                    perror("Invalid file syntax!");
-                    fclose(file_pointer);
-                    latin_square_free(latin_square);
+        int value = 0,
+            buffer_index = 0,
+            column_index = 0;
+        while (buffer_index < strlen(buffer)) {
+            if (buffer[buffer_index] == '-') {
+                if (buffer_index >= strlen(buffer) - 1 || !isdigit(buffer[buffer_index + 1])) {
                     return EXIT_FAILURE;
                 }
-            }
 
-            if (column_index != size) {
-                perror("too few columns found in row");
+                buffer_index++;
+            } else if (isdigit(buffer[buffer_index])) {
+                value = value * 10 + buffer[buffer_index] - '0';
+                value = buffer_index > 0 && buffer[buffer_index - 1] == '-' ? value * -1 : value;
+
+                buffer_index++;
+            } else if (buffer[buffer_index] == ' ' || (buffer_index == strlen(buffer) - 1 && buffer[buffer_index] == '\n')) {
+                if (value != 0) {
+                    if (latin_square_insert(*latin_square, row_index, column_index, value) == EXIT_FAILURE) {
+                        perror("File contains invalid values!");
+                        fclose(file_pointer);
+                        latin_square_free(latin_square);
+                    }
+                }
+
+                value = 0;
+                column_index++;
+                buffer_index++;
+            } else {
+                perror("Invalid file syntax!");
                 fclose(file_pointer);
                 latin_square_free(latin_square);
                 return EXIT_FAILURE;
             }
+        }
+
+        if (column_index != size) {
+            perror("too few columns found in row");
+            fclose(file_pointer);
+            latin_square_free(latin_square);
+                return EXIT_FAILURE;
         }
     }
 
