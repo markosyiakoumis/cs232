@@ -41,7 +41,8 @@ int node_free(Node **node) {
         return EXIT_FAILURE;
     }
 
-    free((*node) -> latin_square);
+    // Don't free the latin_square here
+    // The latin_square should be managed separately
     (*node) -> latin_square = NULL;
     free(*node);
     *node = NULL;

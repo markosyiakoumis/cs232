@@ -191,7 +191,6 @@ int latin_square_clear(LatinSquare *latin_square, int const row, int const colum
 
     return EXIT_SUCCESS;
 }
-
 int latin_square_solve(LatinSquare *latin_square) {
     if (!latin_square) {
         return EXIT_FAILURE;
@@ -199,70 +198,67 @@ int latin_square_solve(LatinSquare *latin_square) {
 
     Stack *stack = NULL;
     stack_init(&stack);
-    stack_push(stack, latin_square, 0, 0, 0);
+    stack_push(stack, latin_square, 0, 0, 0);  // Start at cell (0,0) with value 0
     
-    int push_counter = 0;
-    int pop_counter = 0;
     bool is_empty = false;
     bool is_solved = false;
+    int push_counter = 0;
+    int pop_counter = 0;
+
     while (!is_empty && !is_solved) {
         LatinSquare *top_latin_square;
-        int top_row;
-        int top_column;
-        int top_value;
+        int top_row, top_column, top_value;
         stack_top(stack, &top_latin_square, &top_row, &top_column, &top_value);
 
         LatinSquare *current_latin_square = NULL;
         latin_square_copy(top_latin_square, &current_latin_square);
-        for (int row_index = top_row; row_index < current_latin_square -> size; row_index++) {
-            bool found_empty_cell = false;
 
+        bool found_empty_cell = false;
+
+        for (int row_index = top_row; row_index < current_latin_square->size; row_index++) {
             int column_index = (row_index == top_row) ? top_column : 0;
-            for (; column_index < current_latin_square -> size; column_index++) {
-                printf("%d\n",current_latin_square->square[row_index][column_index]);
-                if (current_latin_square -> square[row_index][column_index] == 0) {
+
+            for (; column_index < current_latin_square->size; column_index++) {
+                if (current_latin_square->square[row_index][column_index] == 0) {
+                    found_empty_cell = true;
+
                     int value = (row_index == top_row && column_index == top_column) ? top_value + 1 : 1;
-                    while (value <= current_latin_square -> size && latin_square_insert(current_latin_square, row_index, column_index, value) == EXIT_FAILURE) {
+                    bool value_found = false;
+
+                    while (value <= current_latin_square->size) {
+                        if (latin_square_insert(current_latin_square, row_index, column_index, value) == EXIT_SUCCESS) {
+                            value_found = true;
+                            break;
+                        }
                         value++;
                     }
-                    
-                    if (value > current_latin_square -> size) {
-                        int popped_row;
-                        int popped_column;
-                        int popped_value;
+
+                    if (value_found) {
+                        push_counter++;
+                        stack_push(stack, current_latin_square, row_index, column_index, value);
+                        printf("PUSH: STEP %d\n", push_counter + pop_counter);
+                        latin_square_print(current_latin_square);
+                    } else {
+                        int popped_row, popped_column, popped_value;
                         stack_pop(stack, NULL, &popped_row, &popped_column, &popped_value);
                         stack_is_empty(stack, &is_empty);
-
-                        if (is_empty) {
-                            // idk wtf to do here.
-                        } else {
-                            stack -> top -> row = popped_row;
-                            stack -> top -> column = popped_column;
-                            stack -> top -> value = popped_value;
+                        if (!is_empty) {
+                            stack->top->row = popped_row;
+                            stack->top->column = popped_column;
+                            stack->top->value = popped_value;
                         }
-
                         pop_counter++;
                         printf("POP: STEP %d\n", push_counter + pop_counter);
-                        latin_square_print(top_latin_square);
-                    } else {
-                        push_counter++;
-                        printf("PUSH: STEP %d\n", push_counter + pop_counter);
-                        stack_push(stack, current_latin_square, row_index, column_index, value);
-                        latin_square_print(current_latin_square);
                     }
-                    
-                    found_empty_cell = true;
                     break;
                 }
             }
+            if (found_empty_cell) break;
+        }
 
-            if (found_empty_cell) {
-                break;
-            } else {
-                printf("SOLVED\n");
-                is_solved = true;
-                break;
-            }
+        if (!found_empty_cell) {
+            is_solved = true;
+            printf("SOLVED\n");
         }
         stack_is_empty(stack, &is_empty);
     }
@@ -270,6 +266,7 @@ int latin_square_solve(LatinSquare *latin_square) {
     stack_free(&stack);
     return EXIT_SUCCESS;
 }
+
 
 int latin_square_print(LatinSquare *const latin_square) {
     if (!latin_square) {
