@@ -239,6 +239,8 @@ int latin_square_solve(LatinSquare *latin_square) {
                         printf("PUSH: STEP %d\n", push_counter + pop_counter);
                         latin_square_print(current_latin_square);
                     } else {
+                        latin_square_free(&current_latin_square);
+                        current_latin_square=NULL;
                         int popped_row, popped_column, popped_value;
                         stack_pop(stack, NULL, &popped_row, &popped_column, &popped_value);
                         stack_is_empty(stack, &is_empty);
