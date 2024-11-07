@@ -41,7 +41,6 @@ int main(void) {
 
     printf("Solving the latin square...\n");
     latin_square_solve(latin_square);
-    latin_square_free(&latin_square);
     return EXIT_SUCCESS;
 }
 #endif
@@ -100,7 +99,6 @@ int latin_square_init(LatinSquare **const latin_square, int const size) {
     if (*latin_square) {
         return EXIT_FAILURE;
     }
-
     *latin_square = (LatinSquare *)malloc(1 * sizeof(LatinSquare));
     if (!*latin_square) {
         return EXIT_FAILURE;
@@ -121,7 +119,6 @@ int latin_square_init(LatinSquare **const latin_square, int const size) {
             (*latin_square) -> square[row_index][column_index] = 0;
         }
     }
-
     return EXIT_SUCCESS;
 }
 
@@ -129,7 +126,6 @@ int latin_square_free(LatinSquare **const latin_square) {
     if (!*latin_square) {
         return EXIT_FAILURE; 
     }
-
     for (int row_index = 0; row_index < (*latin_square) -> size; row_index++) {
         free((*latin_square) -> square[row_index]);
         (*latin_square) -> square[row_index] = NULL;
@@ -253,18 +249,23 @@ int latin_square_solve(LatinSquare *latin_square) {
                         printf("POP: STEP %d\n", push_counter + pop_counter);
                     }
                     break;
+                  
                 }
             }
             if (found_empty_cell) break;
         }
 
         if (!found_empty_cell) {
+            latin_square_free(&current_latin_square);
+                        current_latin_square=NULL;
             is_solved = true;
             printf("SOLVED\n");
         }
         stack_is_empty(stack, &is_empty);
     }
-
+       
+        printf("PUSH NUM:%d \n",push_counter);
+        printf("POP  NUM:%d \n",pop_counter);
     stack_free(&stack);
     return EXIT_SUCCESS;
 }

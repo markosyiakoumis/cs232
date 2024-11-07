@@ -1,7 +1,6 @@
 #include "stack.h"
 
 #include <stdlib.h>
-
 #ifdef DEBUG_STACK
 #include <stdio.h>
 #include <assert.h>
@@ -120,7 +119,6 @@ int stack_pop(Stack *const stack, LatinSquare **latin_square, int *const row, in
 
     Node *old_top = stack -> top;
     stack -> top = stack -> top -> next;
-    
     node_free(&old_top);
     (stack -> size)--;
     
