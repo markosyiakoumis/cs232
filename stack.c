@@ -110,13 +110,14 @@ int stack_push(Stack *const stack, LatinSquare *latin_square, const int row, con
     }
     stack -> top = node;
     (stack -> size)++;
+    
 
     return EXIT_SUCCESS;
 }
 
 int stack_pop(Stack *const stack, LatinSquare **latin_square, int *const row, int *const column, int *const value) {
     stack_top(stack, latin_square, row, column, value);
-
+    
     Node *old_top = stack -> top;
     stack -> top = stack -> top -> next;
     node_free(&old_top);

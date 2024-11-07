@@ -69,6 +69,7 @@ static
 bool check_valid_insert(LatinSquare *latin_square, int const row, int const column, int const value) {
     for (int index = 0; index < latin_square -> size; index++) {
         if (abs(latin_square -> square[index][column]) == abs(value) || abs(latin_square -> square[row][index]) == abs(value)) {
+          //  printf("%d %d %d %d \n",row,column,index,value);
             printf("Error: illegal value insertion!\n");
             return false;
         }
@@ -200,12 +201,12 @@ int latin_square_solve(LatinSquare *latin_square) {
     bool is_solved = false;
     int push_counter = 0;
     int pop_counter = 0;
-
+        int top_row, top_column, top_value;
+        top_row=0,top_column=0,top_value=0;
     while (!is_empty && !is_solved) {
         LatinSquare *top_latin_square;
-        int top_row, top_column, top_value;
-        stack_top(stack, &top_latin_square, &top_row, &top_column, &top_value);
-
+        stack_top(stack, &top_latin_square, NULL, NULL, NULL);
+        printf("%d %d\n",top_row,top_column);
         LatinSquare *current_latin_square = NULL;
         latin_square_copy(top_latin_square, &current_latin_square);
 
@@ -238,15 +239,19 @@ int latin_square_solve(LatinSquare *latin_square) {
                         latin_square_free(&current_latin_square);
                         current_latin_square=NULL;
                         int popped_row, popped_column, popped_value;
-                        stack_pop(stack, NULL, &popped_row, &popped_column, &popped_value);
+                        stack_pop(stack, NULL, &top_row, &top_column, &top_value);
                         stack_is_empty(stack, &is_empty);
-                        if (!is_empty) {
+                      /*  if (!is_empty) {
                             stack->top->row = popped_row;
                             stack->top->column = popped_column;
                             stack->top->value = popped_value;
-                        }
+                        }*/
                         pop_counter++;
                         printf("POP: STEP %d\n", push_counter + pop_counter);
+                        LatinSquare *temp_latinSquare;
+                        stack_top(stack, &temp_latinSquare, NULL, NULL, NULL);
+
+                        latin_square_print(temp_latinSquare);
                     }
                     break;
                   
