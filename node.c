@@ -2,17 +2,44 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include<assert.h>
 #ifdef DEBUG_NODE
 int main(void) {
-    printf("Intializing a node...\n");
+       printf("Initializing a node...\n");
+
+    // Create a dummy LatinSquare for testing purposes
+    LatinSquare *latin_square = NULL;
+    latin_square_init(&latin_square, 3);  // Assuming this function initializes the LatinSquare
+
     Node *node = NULL;
-    int **square = (int **)malloc(3 * sizeof(int *));
-    node_init(&node, square, 1, 2, NULL);
+    assert(node_init(&node, latin_square, 1, 2, 5, NULL) == EXIT_SUCCESS);  // Initialize node
 
+    // Assert the node has been properly initialized
+    assert(node != NULL);  // Ensure node is not NULL
+    assert(node->latin_square == latin_square);  // Check that the latin_square pointer matches
+    assert(node->row == 1);  // Check row value
+    assert(node->column == 2);  // Check column value
+    assert(node->value == 5);  // Check value stored in the node
+    assert(node->next == NULL);  // Check that next pointer is NULL (since no other node is linked)
+
+    printf("Node initialized successfully!\n");
+
+    // Test printing the node
+    printf("Printing the node...\n");
+    assert(node_print(node) == EXIT_SUCCESS);  // Assert that the node prints successfully
+
+    // Test freeing the node
     printf("Freeing the node...\n");
-    node_free(&node);
+    assert(node_free(&node) == EXIT_SUCCESS);  // Free the node
+    assert(node == NULL);  // After freeing, node should be NULL
 
+    // Test freeing a NULL node
+    printf("Testing freeing a NULL node...\n");
+    assert(node_free(&node) == EXIT_FAILURE);  // Trying to free a NULL node should fail
+
+    printf("All tests passed successfully!\n");
+
+    
     return EXIT_SUCCESS;
 }
 #endif

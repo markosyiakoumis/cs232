@@ -6,23 +6,35 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
-
+#include<assert.h>
 #ifdef DEBUG_FILE_HANDLER
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        perror("Invalid syntax!");
-        return EXIT_FAILURE;
-    }
+   // Check the correct number of arguments
+    assert(argc == 2 && "Usage: program <file_name>");
+    
+    // Pointer for the LatinSquare object
     LatinSquare *latin_square = NULL;
-    if (read_latin_square(argv[1], &latin_square)) {
-        return EXIT_FAILURE;
-    }
+
+    // Read the Latin square from the file and assert successful reading
+    int result = read_latin_square(argv[1], &latin_square);
+    assert(result == EXIT_SUCCESS && "Failed to read Latin square from file");
+
+    // Assert that the Latin square was initialized properly
+    assert(latin_square != NULL && "Latin square is NULL after initialization");
+
+    // Print the Latin square to verify the contents
     latin_square_print(latin_square);
+
+    // Free the Latin square memory
     latin_square_free(&latin_square);
+
+    // Assert that the Latin square is freed (should be NULL)
+    assert(latin_square == NULL && "Latin square was not freed properly");
+
+    printf("Latin square processed successfully!\n");
     return EXIT_SUCCESS;
 }
 #endif
-
 int read_latin_square(char *const file_name, LatinSquare **latin_square) {
     FILE *file_pointer = fopen(file_name, "r");
     if (!file_pointer) {
@@ -32,8 +44,8 @@ int read_latin_square(char *const file_name, LatinSquare **latin_square) {
     char buffer[1024];
     fgets(buffer, sizeof(buffer), file_pointer);
 
-    int size = 0;
-    for (int index = 0; index < strlen(buffer) - 1; index++) {
+    size_t size = 0; // Use size_t for size (returned by strlen)
+    for (size_t index = 0; index < strlen(buffer) - 1; index++) {  // Change index type to size_t
         if (isdigit(buffer[index])) {
             size = size * 10 + buffer[index] - '0';
         } else {
@@ -44,15 +56,15 @@ int read_latin_square(char *const file_name, LatinSquare **latin_square) {
     }
 
     latin_square_init(latin_square, size);
-    for (int row_index = 0; row_index < size; row_index++) {
+    for (size_t row_index = 0; row_index < size; row_index++) {  // Change row_index type to size_t
         if (!fgets(buffer, sizeof(buffer), file_pointer)) {
             return EXIT_FAILURE;
         }
 
-        int value = 0,
-            buffer_index = 0,
-            column_index = 0;
-        while (buffer_index < strlen(buffer)) {
+        int value = 0;
+        size_t buffer_index = 0; // Change buffer_index type to size_t
+        size_t column_index = 0; // Change column_index type to size_t
+        while (buffer_index < strlen(buffer)) {  // Change buffer_index type to size_t
             if (buffer[buffer_index] == '-') {
                 if (buffer_index >= strlen(buffer) - 1 || !isdigit(buffer[buffer_index + 1])) {
                     return EXIT_FAILURE;
@@ -88,7 +100,7 @@ int read_latin_square(char *const file_name, LatinSquare **latin_square) {
             perror("too few columns found in row");
             fclose(file_pointer);
             latin_square_free(latin_square);
-                return EXIT_FAILURE;
+            return EXIT_FAILURE;
         }
     }
 

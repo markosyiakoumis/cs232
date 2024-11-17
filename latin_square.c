@@ -9,44 +9,87 @@
 #ifdef DEBUG_LATIN_SQUARE
 #include <assert.h>
 int main(void) {
-    printf("Initializing a 3x3 latin square...\n");
+      printf("Starting tests for Latin Square...\n");
+
     LatinSquare *latin_square = NULL;
-    latin_square_init(&latin_square, 3);
-    latin_square_print(latin_square);
 
-    printf("Executing 1,2 = -2...\n");
-    latin_square_insert(latin_square, 0, 1, -2);
-    latin_square_print(latin_square);
+    // Test 1: Initialization
+    printf("Test 1: Initializing a 3x3 Latin Square...\n");
+    assert(latin_square_init(&latin_square, 3) == EXIT_SUCCESS);
+    assert(latin_square != NULL);
+    assert(latin_square->size == 3);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            assert(latin_square->square[i][j] == 0);
+        }
+    }
+    printf("Test 1 Passed!\n");
 
-    printf("Executing 2,1 = -2...\n");
-    latin_square_insert(latin_square, 1, 0, -2);
-    latin_square_print(latin_square);
+    // Test 2: Insert valid values
+    printf("Test 2: Inserting valid values...\n");
+    assert(latin_square_insert(latin_square, 0, 0, 1) == EXIT_SUCCESS);
+    assert(latin_square->square[0][0] == 1);
+    assert(latin_square_insert(latin_square, 0, 1, 2) == EXIT_SUCCESS);
+    assert(latin_square->square[0][1] == 2);
+    printf("Test 2 Passed!\n");
 
-    // printf("Executing 2,1 = -2...\n");
-    // latin_square_insert(latin_square, 1, 0, -2);
-    // latin_square_print(latin_square);
+    // Test 3: Insert invalid value (duplicate in row)
+    printf("Test 3: Inserting duplicate value in row...\n");
+    assert(latin_square_insert(latin_square, 0, 2, 1) == EXIT_FAILURE);
+    printf("Test 3 Passed!\n");
 
-    // printf("Testing latin_square_copy\n");
-    // LatinSquare *copied_square=NULL;
-    // if (latin_square_copy(latin_square, &copied_square) == EXIT_SUCCESS) {
-    //     printf("Copy successfull,printing the copied square:\n");
-    //     latin_square_print(copied_square);
-    //     latin_square_insert(copied_square,2,2,1);
-    //     latin_square_print(copied_square);
-    //     latin_square_print(latin_square);
-        
-    // } else {
-    //     printf("Copy failed.\n");
-    // }
+    // Test 4: Insert invalid value (out of bounds)
+    printf("Test 4: Inserting out-of-bounds value...\n");
+    assert(latin_square_insert(latin_square, 0, 3, 1) == EXIT_FAILURE); // Invalid column
+    assert(latin_square_insert(latin_square, 3, 0, 1) == EXIT_FAILURE); // Invalid row
+    assert(latin_square_insert(latin_square, 0, 0, 5) == EXIT_FAILURE); // Value exceeds size
+    printf("Test 4 Passed!\n");
 
-    printf("Solving the latin square...\n");
-    latin_square_solve(latin_square);
-    
-    latin_square_free(&latin_square);
+    // Test 5: Clear valid cell
+    printf("Test 5: Clearing a valid cell...\n");
+    assert(latin_square_clear(latin_square, 0, 1) == EXIT_SUCCESS);
+    assert(latin_square->square[0][1] == 0);
+    printf("Test 5 Passed!\n");
+
+    // Test 6: Clear invalid cell (fixed cell)
+    printf("Test 6: Clearing a fixed cell...\n");
+    latin_square->square[0][0] = -1; // Mark cell as fixed
+    assert(latin_square_clear(latin_square, 0, 0) == EXIT_FAILURE);
+    printf("Test 6 Passed!\n");
+
+    // Test 7: Solve a simple Latin square
+    printf("Test 7: Solving a Latin Square...\n");
+    latin_square_insert(latin_square, 0, 1, 2);
+    latin_square_insert(latin_square, 0, 2, 3);
+    assert(latin_square_solve(latin_square) == EXIT_SUCCESS);
+    printf("Solved Latin Square:\n");
+  
+    printf("Test 7 Passed!\n");
+
+    // Test 8: Free the Latin square
+    printf("Test 8: Freeing the Latin Square...\n");
+    assert(latin_square_free(&latin_square) == EXIT_SUCCESS);
+    assert(latin_square == NULL);
+    printf("Test 8 Passed!\n");
+
+    printf("All tests passed successfully!\n");
     return EXIT_SUCCESS;
 }
 #endif
 
+/**
+ * @brief Checks whether the given row, column, and value are within the allowed bounds.
+ * 
+ * This function verifies that the provided row, column, and value are within the 
+ * valid range for the Latin Square. The valid range for row and column is [0..size-1], 
+ * and the valid range for the value is [1..size].
+ * 
+ * @param latin_square A pointer to the Latin Square.
+ * @param row The row index to check.
+ * @param column The column index to check.
+ * @param value The value to check.
+ * @return true if all parameters are within the allowed bounds, false otherwise.
+ */
 static
 bool check_bounds(LatinSquare *latin_square, int const row, int const column, int const value) {
     if (row > latin_square -> size - 1 || column > latin_square -> size - 1 || abs(value) > latin_square -> size) {
@@ -57,6 +100,17 @@ bool check_bounds(LatinSquare *latin_square, int const row, int const column, in
     return true;
 }
 
+/**
+ * @brief Checks whether the cell at the given row and column is already occupied.
+ * 
+ * This function checks if the specified cell in the Latin Square is already occupied 
+ * by a non-zero value.
+ * 
+ * @param latin_square A pointer to the Latin Square.
+ * @param row The row index to check.
+ * @param column The column index to check.
+ * @return true if the cell is unoccupied (value is 0), false otherwise.
+ */
 static
 bool check_occupation(LatinSquare *latin_square, int const row, int const column) {
     if (latin_square -> square[row][column] != 0) {
@@ -66,7 +120,19 @@ bool check_occupation(LatinSquare *latin_square, int const row, int const column
 
     return true;
 }
-
+/**
+ * @brief Validates whether inserting a value into the given cell is allowed.
+ * 
+ * This function ensures that the value to be inserted into the specified cell 
+ * does not violate Latin Square constraints, i.e., no duplicate values 
+ * in the row or column.
+ * 
+ * @param latin_square A pointer to the Latin Square.
+ * @param row The row index to check.
+ * @param column The column index to check.
+ * @param value The value to be inserted.
+ * @return true if the insertion is valid, false otherwise.
+ */
 static
 bool check_valid_insert(LatinSquare *latin_square, int const row, int const column, int const value) {
     for (int index = 0; index < latin_square -> size; index++) {
@@ -79,7 +145,17 @@ bool check_valid_insert(LatinSquare *latin_square, int const row, int const colu
 
     return true;
 }
-
+/**
+ * @brief Validates whether a value in a cell can be cleared.
+ * 
+ * This function ensures that a value can only be cleared if it is not a fixed value 
+ * (i.e., negative values).
+ * 
+ * @param latin_square A pointer to the Latin Square.
+ * @param row The row index to check.
+ * @param column The column index to check.
+ * @return true if the cell can be cleared, false otherwise.
+ */
 static
 bool check_valid_clear(LatinSquare *latin_square, int const row, int const column) {
     if (latin_square -> square[row][column] < 0) {
@@ -90,6 +166,14 @@ bool check_valid_clear(LatinSquare *latin_square, int const row, int const colum
     return true;
 }
 
+/**
+ * @brief Prints a horizontal border for the Latin Square grid.
+ * 
+ * This function prints a horizontal border line with the specified length, 
+ * used to separate rows in the printed Latin Square.
+ * 
+ * @param size The size of the Latin Square (determines the number of columns).
+ */
 static
 void print_horizontal_border(int size) {
     for (int counter = 1; counter <= size; counter++) {

@@ -6,24 +6,60 @@
 #include <assert.h>
 
 int main(void) {
+      // Step 1: Initialize the stack
     printf("Initializing a stack...\n");
     Stack *stack = NULL;
-    stack_init(&stack);
+    int result = stack_init(&stack);
+    assert(result == EXIT_SUCCESS && "Stack initialization failed.");
+    assert(stack != NULL && "Stack pointer should not be NULL after initialization.");
+    assert(stack->size == 0 && "Stack size should be 0 after initialization.");
 
-    printf("Initializing a 3x3 latin square...\n");
+    // Step 2: Create and initialize a 3x3 Latin Square
+    printf("Initializing a 3x3 Latin Square...\n");
     LatinSquare *latin_square = NULL;
-    latin_square_init(&latin_square, 3);
+    result = latin_square_init(&latin_square, 3);
+    assert(result == EXIT_SUCCESS && "Latin square initialization failed.");
+
+    // Step 3: Insert values into the Latin Square
+    printf("Inserting values into the Latin Square...\n");
+    result = latin_square_insert(latin_square, 0, 1, -2);
+    assert(result == EXIT_SUCCESS && "Failed to insert value into Latin Square.");
     latin_square_print(latin_square);
 
-    printf("Executing 1,2 = -2...\n");
-    latin_square_insert(latin_square, 0, 1, -2);
-    latin_square_print(latin_square);
+    // Step 4: Push the Latin Square to the stack
+    printf("Pushing the Latin Square to the stack...\n");
+    result = stack_push(stack, latin_square, 0, 0, 0);
+    assert(result == EXIT_SUCCESS && "Failed to push Latin Square to stack.");
+    assert(stack->size == 1 && "Stack size should be 1 after pushing.");
 
-    printf("Pushing the latin square to the stack...\n");
-    stack_push(stack, latin_square, 0, 0, 0);
-    stack_print(stack);
+    // Step 5: Check if the stack is empty (it should not be)
+    bool is_empty = false;
+    result = stack_is_empty(stack, &is_empty);
+    assert(result == EXIT_SUCCESS && "Failed to check if stack is empty.");
+    assert(is_empty == false && "Stack should not be empty.");
 
-    stack_free(&stack);
+    // Step 6: Pop the top element from the stack
+    printf("Popping the top element from the stack...\n");
+    LatinSquare *popped_latin_square = NULL;
+    int row = 0, column = 0, value = 0;
+    result = stack_pop(stack, &popped_latin_square, &row, &column, &value);
+    assert(result == EXIT_SUCCESS && "Failed to pop from stack.");
+    assert(stack->size == 0 && "Stack size should be 0 after popping.");
+    assert(popped_latin_square == latin_square && "Popped Latin Square does not match the pushed one.");
+    assert(row == 0 && column == 0 && value == 0 && "Popped values do not match the expected ones.");
+
+    // Step 7: Ensure that the stack is empty after popping
+    result = stack_is_empty(stack, &is_empty);
+    assert(result == EXIT_SUCCESS && "Failed to check if stack is empty after popping.");
+    assert(is_empty == true && "Stack should be empty after popping all elements.");
+
+    // Step 8: Free the stack memory
+    result = stack_free(&stack);
+    assert(result == EXIT_SUCCESS && "Failed to free the stack.");
+    assert(stack == NULL && "Stack pointer should be NULL after freeing.");
+
+    printf("All assertions passed successfully.\n");
+
     return EXIT_SUCCESS;
 }
 #endif
