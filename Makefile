@@ -13,15 +13,15 @@ BUILD_DIR = build
 
 # Source files
 NODE_SRC = node.c
-STACK_SRC = stack.c
 LATIN_SQUARE_SRC = latin_square.c
+STACK_SRC = stack.c
 FILE_HANDLER_SRC = file_handler.c
 MAIN_SRC = main.c
 
 # Object files
 NODE_OBJ = ${BUILD_DIR}/node.o
+LATIN_SQUARE_OBJ = ${STACK_OBJ} ${BUILD_DIR}/latin_square.o
 STACK_OBJ = ${NODE_OBJ} ${BUILD_DIR}/stack.o
-LATIN_SQUARE_OBJ = ${BUILD_DIR}/latin_square.o
 FILE_HANDLER_OBJ = ${LATIN_SQUARE_OBJ} ${BUILD_DIR}/file_handler.o
 MAIN_OBJ = ${FILE_HANDLER_OBJ} ${BUILD_DIR}/main.o
 
@@ -46,14 +46,15 @@ ${BUILD_DIR}/latin_square.o: ${LATIN_SQUARE_SRC}
 ${BUILD_DIR}/file_handler.o: ${FILE_HANDLER_SRC}
 	$(CC) ${C_FLAGS} -c ${FILE_HANDLER_SRC} -o ${BUILD_DIR}/file_handler.o
 
-# Targets to build individual executables
-node: clean ${BUILD_DIR} ${NODE_OBJ}
-	$(CC) ${C_FLAGS} -c ${NODE_SRC} -DDEBUG_NODE -o ${BUILD_DIR}/stack.o
-	$(CC) $(L_FLAGS) ${C_FLAGS} -o debug_node ${NODE_OBJ}
+${BUILD_DIR}/main.o: ${MAIN_SRC}
+	$(CC) ${C_FLAGS} -c ${MAIN_SRC} -o ${BUILD_DIR}/main.o
 
-stack: clean ${BUILD_DIR} ${STACK_OBJ}
-	$(CC) ${C_FLAGS} -c ${STACK_SRC} -DDEBUG_STACK -o ${BUILD_DIR}/stack.o
-	$(CC) $(L_FLAGS) ${C_FLAGS} -o debug_stack ${STACK_OBJ}
+# Targets to build individual executables
+node: clean
+	${CC} ${C_FLAGS} $(L_FLAGS) -o debug_node -DDEBUG_NODE node.c latin_square.c stack.c
+
+stack: clean
+	${CC} ${C_FLAGS} $(L_FLAGS) -o debug_stack -DDEBUG_STACK node.c latin_square.c stack.c
 
 latin_square: clean ${BUILD_DIR} ${LATIN_SQUARE_OBJ}
 	$(CC) ${C_FLAGS} -c ${LATIN_SQUARE_SRC} -DDEBUG_LATIN_SQUARE -o ${BUILD_DIR}/latin_square.o
@@ -78,4 +79,4 @@ docs:
 
 # Clean up build files and executables
 clean:
-	rm -rf html ${BUILD_DIR} ${PROJ} debug_node debug_stack debug_latin_square debug_file_handler
+	rm -rf html ${BUILD_DIR} ${PROJ} debug_node debug_stack debug_latin_square debug_file_handler valgrind.txt

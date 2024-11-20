@@ -6,8 +6,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdbool.h>
-#include<assert.h>
+
 #ifdef DEBUG_FILE_HANDLER
+#include <assert.h>
 int main(int argc, char *argv[]) {
    // Check the correct number of arguments
     assert(argc == 2 && "Usage: program <file_name>");
@@ -35,6 +36,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
 }
 #endif
+
 int read_latin_square(char *const file_name, LatinSquare **latin_square) {
     FILE *file_pointer = fopen(file_name, "r");
     if (!file_pointer) {

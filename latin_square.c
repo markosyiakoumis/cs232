@@ -93,7 +93,6 @@ int main(void) {
 static
 bool check_bounds(LatinSquare *latin_square, int const row, int const column, int const value) {
     if (row > latin_square -> size - 1 || column > latin_square -> size - 1 || abs(value) > latin_square -> size) {
-        printf("Error: i,j or val are outside the allowed range [1..%d]\n", latin_square -> size);
         return false;
     }
 
@@ -114,7 +113,6 @@ bool check_bounds(LatinSquare *latin_square, int const row, int const column, in
 static
 bool check_occupation(LatinSquare *latin_square, int const row, int const column) {
     if (latin_square -> square[row][column] != 0) {
-        printf("Error: cell is already occupied!\n");
         return false;
     }
 
@@ -137,8 +135,6 @@ static
 bool check_valid_insert(LatinSquare *latin_square, int const row, int const column, int const value) {
     for (int index = 0; index < latin_square -> size; index++) {
         if (abs(latin_square -> square[index][column]) == abs(value) || abs(latin_square -> square[row][index]) == abs(value)) {
-          //  printf("%d %d %d %d \n",row,column,index,value);
-            printf("Error: illegal value insertion!\n");
             return false;
         }
     }
@@ -159,7 +155,6 @@ bool check_valid_insert(LatinSquare *latin_square, int const row, int const colu
 static
 bool check_valid_clear(LatinSquare *latin_square, int const row, int const column) {
     if (latin_square -> square[row][column] < 0) {
-        printf("Error: illegal to clear cell!\n");
         return false;
     }
 
@@ -320,14 +315,16 @@ int latin_square_solve(LatinSquare *latin_square) {
                     } else {
                         stack_is_empty(stack, &is_empty);
                         if (!is_empty) {
-                            pop_counter++;
-                            printf("POP: STEP %d\n", push_counter + pop_counter);
-                            latin_square_print(current_latin_square);
+                            if (stack -> size > 1) {
+                                pop_counter++;
+                                printf("POP: STEP %d\n", push_counter + pop_counter);
+                                latin_square_print(current_latin_square);
+                            } else {
+                                printf("LATIN SQUARE IS UNSOLVABLE!\n");
+                            }
+                               
                             latin_square_free(&current_latin_square);
-
                             stack_pop(stack, NULL, &top_row, &top_column, &top_value);
-                        } else {
-                            //
                         }
                     }
 

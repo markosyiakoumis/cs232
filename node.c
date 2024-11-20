@@ -2,10 +2,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include<assert.h>
+
 #ifdef DEBUG_NODE
+#include <assert.h>
 int main(void) {
-       printf("Initializing a node...\n");
+    printf("Initializing a node...\n");
 
     // Create a dummy LatinSquare for testing purposes
     LatinSquare *latin_square = NULL;
